@@ -21,10 +21,10 @@
 				justify-content: center;
 				width: 100%;
 				height: 100%;
+				font-size: 20vw;
 			}
 
 			.big_letters {
-				font-size: 20vw;
 				text-shadow: 1px 1px 2px #aeb6a7, 0 0 150px #aeb6a7, 0 0 5px #aeb6a7;
 			}
 		</style>
@@ -36,17 +36,80 @@
 			var text_holder = "LOWKEY"
 			var installed_fonts = ["serif", "sans-serif", "monospace", "cursive", "fantasy", "system-ui", "ui-serif", "ui-sans-serif", "ui-monospace", "ui-rounded", "emoji", "math", "fangsong"]
 			var timer = 400
+			var displaymode = "text"
+			var clockseconds = false
 
 			var max_font_number = installed_fonts.length
-
-			var letters = text_holder.split("")
-			var letters_length = letters.length
-			for (var i = 0; i < letters_length; i++) {
-				var letter = letters[i]
-				if (letter === " ") {
-					letter = "&ensp;"
+			var address = decodeURI(window.location)
+			var address_string = address.split("?")
+			if (address_string.length !== 1) {
+				var address_parameters = address_string[1].split("&")
+				var address_parameters_length = address_parameters.length
+				for (var i = 0; i < address_parameters_length; i++) {
+					if (address_parameters[i].startsWith("text")) {
+						text_holder = address_parameters[i].split("=")[1]
+					}
+					if (address_parameters[i].startsWith("timer")) {
+						timer = address_parameters[i].split("=")[1]
+					}
+					if (address_parameters[i].startsWith("lettersize")) {
+						document.getElementById("letters_place").style.fontSize = address_parameters[i].split("=")[1]
+					}
+					if (address_parameters[i].startsWith("displaymode")) {
+						displaymode = address_parameters[i].split("=")[1]
+					}
+					if (address_parameters[i].startsWith("clockseconds")) {
+						clockseconds = address_parameters[i].split("=")[1]
+					}
 				}
-				document.getElementById("letters_place").innerHTML += "<span class='big_letters' id='big_letter_" + i + "'>" + letter + "</span>"
+			}
+			
+			if (displaymode === "clock") {
+				function zegarnik() {
+					var currentdate = new Date()
+					var datestring = ""
+					var hour = currentdate.getHours()
+					var minutes = currentdate.getMinutes()
+					hour = evennumbers(hour)
+					minutes = evennumbers(minutes)
+					datestring = hour + ":" + minutes
+					if (clockseconds === "true") {
+						var seconds = currentdate.getSeconds()
+						seconds = evennumbers(seconds)
+						datestring += ":" + seconds
+					}
+					text_holder = datestring
+					letter_writer()
+					setTimeout(zegarnik, timer)
+				}
+				function evennumbers(number) {
+					var result = number
+					if (number < 10) {
+						result = "0" + number
+					}
+					return result
+				}
+				zegarnik()
+			}
+			
+			var letters = text_holder.split("")
+			var letters_length = letters.length			
+			function letter_writer() {
+				var letters = text_holder.split("")
+				var letters_length = letters.length
+				for (var i = 0; i < letters_length; i++) {
+					var letter = letters[i]
+					if (letter === " ") {
+						letter = "&ensp;"
+					}
+					if (i === 0) {
+						document.getElementById("letters_place").innerHTML = ""
+					}
+					document.getElementById("letters_place").innerHTML += "<span class='big_letters' id='big_letter_" + i + "'>" + letter + "</span>"
+				}
+			}
+			if (displaymode === "text") {
+				letter_writer()
 			}
 			var timer_ref = setInterval(letter_changer, timer)
 
